@@ -91,6 +91,28 @@ extern int curve25519_sign(unsigned char *signature_out, /* 64 bytes */
     return [[ECKeyPair alloc] initWithPublicKey:[publicKey copy] privateKey:[privateKey copy]];
 }
 
++(ECKeyPair*)generateKeyPairWithPrivateKey:(NSData *)privKey
+{
+    // Generate key pair as described in
+    // https://code.google.com/p/curve25519-donna/
+    NSMutableData *privateKey = [privateKey mutableCopy];
+    uint8_t *privateKeyBytes = privateKey.mutableBytes;
+    privateKeyBytes[0] &= 248;
+    privateKeyBytes[31] &= 127;
+    privateKeyBytes[31] |= 64;
+    
+    static const uint8_t basepoint[ECCKeyLength] = { 9 };
+    
+    NSMutableData *publicKey = [NSMutableData dataWithLength:ECCKeyLength];
+    if (!publicKey) {
+        OWSFail(@"Could not allocate buffer");
+    }
+    
+    curve25519_donna(publicKey.mutableBytes, privateKey.mutableBytes, basepoint);
+    
+    return [[ECKeyPair alloc] initWithPublicKey:[publicKey copy] privateKey:[privateKey copy]];
+}
+
 - (NSData *)throws_sign:(NSData *)data
 {
     if (!data) {
@@ -122,6 +144,11 @@ extern int curve25519_sign(unsigned char *signature_out, /* 64 bytes */
 + (ECKeyPair *)generateKeyPair
 {
     return [ECKeyPair generateKeyPair];
+}
+
++(ECKeyPair*)generateKeyPairWithPrivateKey:(NSData *)privKey
+{
+    return [ECKeyPair generateKeyPairWithPrivateKey:privateKey];
 }
 
 + (NSData *)throws_generateSharedSecretFromPublicKey:(NSData *)theirPublicKey andKeyPair:(ECKeyPair *)keyPair

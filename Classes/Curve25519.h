@@ -47,6 +47,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (ECKeyPair *)generateKeyPair;
 
+/**
+ *  Generate a curve25519 key pair from provided private key
+ *
+ * @return curve25519 key pair
+ */
++ (ECKeyPair *)generateKeyPairWithPrivateKey:(NSData *)privKey;
+
 @end
 
 NS_ASSUME_NONNULL_END
